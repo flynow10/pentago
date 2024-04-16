@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Board, Piece, Quadrant } from "./Board";
+import { Board, Quadrant } from "./game/board";
+import { Piece } from "./game/piece";
 
 type BoardDisplayProps = {
   board: Board;

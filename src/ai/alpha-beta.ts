@@ -1,14 +1,7 @@
-import {
-  Board,
-  Move,
-  NullMove,
-  Piece,
-  didWhiteWin,
-  flattenBoard,
-  generateMoves,
-  moveEquals,
-  playMove,
-} from "./Board";
+import { Board, didWhiteWin, playMove } from "../game/board";
+import { generateMoves } from "../game/generate-moves";
+import { Move, NullMove, moveEquals } from "../game/move";
+import PentagoBot from "./bot";
 
 type Transposition = {
   key: number;
@@ -17,7 +10,7 @@ type Transposition = {
   move: Move;
 };
 
-export class AlphaBetaBot {
+export abstract class AlphaBetaBot implements PentagoBot {
   private static readonly MAX_DEPTH = 30;
   private bestMove: Move;
   private bestScore: number;
@@ -35,7 +28,7 @@ export class AlphaBetaBot {
     this.nodes = 0;
   }
 
-  public search(board: Board): Move {
+  public getNextMove(board: Board): Move {
     this.bestMove = NullMove();
     this.bestScore = 0;
     this.startTime = window.performance.now();
@@ -63,11 +56,11 @@ export class AlphaBetaBot {
     return chosenMove;
   }
 
-  private shouldTimeout() {
+  protected shouldTimeout() {
     return window.performance.now() - this.startTime > 2000;
   }
 
-  private negaMax(
+  protected negaMax(
     board: Board,
     depth: number,
     plyFromRoot: number,
@@ -148,7 +141,7 @@ export class AlphaBetaBot {
     return localBestScore;
   }
 
-  private hashBoard(board: Board) {
+  protected hashBoard(board: Board) {
     let hash = 0;
     for (let i = 0; i < board.quadrants.length; i++) {
       const quad = board.quadrants[i];
@@ -163,57 +156,5 @@ export class AlphaBetaBot {
     return hash;
   }
 
-  private evaluate(board: Board): number {
-    const flatBoard = flattenBoard(board);
-    const winCheckLines = [
-      [0, 1, 2, 3, 4],
-      [0, 6, 12, 18, 24],
-      [0, 7, 14, 21, 28],
-      [4, 9, 14, 19, 24],
-    ];
-    let whitePartials = 0;
-    let blackPartials = 0;
-    for (let y = 0; y < 6; y++) {
-      for (let x = 0; x < 6; x++) {
-        const i = y * 6 + x;
-        for (const checkLine of winCheckLines) {
-          if (x + checkLine[0] >= 6) {
-            continue;
-          }
-          const firstPiece = flatBoard[i + checkLine[0]];
-          if (firstPiece === Piece.None) {
-            continue;
-          }
-          let pieceCount = 1;
-          for (let j = 1; j < checkLine.length; j++) {
-            const checkIndex = i + checkLine[j];
-            if (x !== 0 && checkIndex % 6 === 0) {
-              pieceCount = 0;
-              break;
-            }
-            if (checkIndex >= 36) {
-              pieceCount = 0;
-              break;
-            }
-            if (flatBoard[checkIndex] === firstPiece) {
-              pieceCount++;
-            } else if (flatBoard[checkIndex] !== Piece.None) {
-              pieceCount = 0;
-              break;
-            }
-          }
-          if (pieceCount !== 0) {
-            pieceCount *= pieceCount;
-            if (firstPiece === Piece.White) {
-              whitePartials += pieceCount;
-            } else {
-              blackPartials += pieceCount;
-            }
-          }
-        }
-      }
-    }
-    const score = whitePartials - blackPartials;
-    return (board.whiteToMove ? 1 : -1) * score;
-  }
+  abstract evaluate(board: Board): number;
 }

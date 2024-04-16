@@ -1,3 +1,6 @@
+import { Move } from "./move";
+import { Piece } from "./piece";
+
 export type Board = {
   whiteToMove: boolean;
   quadrants: Quadrant[];
@@ -7,37 +10,6 @@ export type Board = {
     1, 2, 1,
     0, 1, 0] */
 export type Quadrant = Piece[];
-
-export type Move = {
-  placeQuadrant: number;
-  square: number;
-  rotateQuadrant: number;
-  clockwise: boolean;
-};
-
-export function moveEquals(move1: Move, move2: Move) {
-  return (
-    move1.clockwise === move2.clockwise &&
-    move1.placeQuadrant === move2.placeQuadrant &&
-    move1.rotateQuadrant === move2.rotateQuadrant &&
-    move1.square === move2.square
-  );
-}
-
-export function NullMove(): Move {
-  return {
-    clockwise: false,
-    placeQuadrant: -1,
-    rotateQuadrant: -1,
-    square: -1,
-  };
-}
-
-export enum Piece {
-  White,
-  Black,
-  None,
-}
 
 export function createBlankBoard(): Board {
   return {
@@ -109,41 +81,6 @@ export function undoMove(board: Board, move: Move) {
     move.placeQuadrant,
     move.square
   );
-}
-
-export function generateMoves(board: Board): Move[] {
-  const moveList: Move[] = [];
-  const symmetricQuads = board.quadrants.reduce((arr, quad, index) => {
-    if (quad.every((p, i) => p === Piece.None || i === 4)) {
-      arr.push(index);
-    }
-    return arr;
-  }, [] as number[]);
-  for (let i = 0; i < board.quadrants.length; i++) {
-    const quad = board.quadrants[i];
-    const stillSymmetric = symmetricQuads.filter((index) => index !== i);
-    for (let j = 0; j < quad.length; j++) {
-      const piece = quad[j];
-      if (piece === Piece.None) {
-        const skipQuads = stillSymmetric.slice(0, -1);
-        for (let k = 0; k < board.quadrants.length; k++) {
-          if (skipQuads.includes(k)) {
-            continue;
-          }
-          for (let c = 0; c < (stillSymmetric.includes(k) ? 1 : 2); c++) {
-            const clockwise = c === 0;
-            moveList.push({
-              clockwise,
-              placeQuadrant: i,
-              rotateQuadrant: k,
-              square: j,
-            });
-          }
-        }
-      }
-    }
-  }
-  return moveList;
 }
 
 export function flattenBoard(board: Board) {

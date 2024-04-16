@@ -2,14 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import BoardDisplay from "./BoardDisplay";
 import {
   Board,
-  Piece,
   createBlankBoard,
   didWhiteWin,
   placePieceMove,
   playMove,
   rotateQuadrantOnBoard,
-} from "./Board";
-import { AlphaBetaBot } from "./AlphaBeta";
+} from "./game/board";
+import { HandCraftedEval } from "./ai/hand-crafted-eval";
+import { Piece } from "./game/piece";
 
 export default function App() {
   const [boardHistory, setBoardHistory] = useState<Board[]>([]);
@@ -20,7 +20,7 @@ export default function App() {
   const [whiteWin, setWhiteWin] = useState<boolean | null>(null);
   const [botPlaysWhite, setBotPlaysWhite] = useState(false);
   const [botPlaysBlack, setBotPlaysBlack] = useState(false);
-  const alphaBetaBot = useRef(new AlphaBetaBot());
+  const alphaBetaBot = useRef(new HandCraftedEval());
 
   const handleClick = useCallback(
     (quadIndex: number, pieceIndex: number) => {
@@ -73,7 +73,7 @@ export default function App() {
         (botPlaysBlack && !currentBoard.whiteToMove)
       ) {
         setTimeout(() => {
-          const move = alphaBetaBot.current.search(currentBoard);
+          const move = alphaBetaBot.current.getNextMove(currentBoard);
           const newBoard = playMove(currentBoard, move);
           setBoardHistory((prev) => [...prev, currentBoard]);
           setCurrentBoard(newBoard);
