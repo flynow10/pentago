@@ -22,3 +22,11 @@ export function NullMove(): Move {
     square: -1,
   };
 }
+
+export function isNullMove(move: Move): boolean {
+  return (
+    move.placeQuadrant === -1 ||
+    move.rotateQuadrant === -1 ||
+    move.square === -1
+  );
+}

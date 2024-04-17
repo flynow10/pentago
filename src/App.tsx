@@ -72,14 +72,13 @@ export default function App() {
         (botPlaysWhite && currentBoard.whiteToMove) ||
         (botPlaysBlack && !currentBoard.whiteToMove)
       ) {
-        setTimeout(() => {
-          const move = alphaBetaBot.current.getNextMove(currentBoard);
+        alphaBetaBot.current.getNextMove(currentBoard).then((move) => {
           const newBoard = playMove(currentBoard, move);
           setBoardHistory((prev) => [...prev, currentBoard]);
           setCurrentBoard(newBoard);
           setWhiteWin(didWhiteWin(newBoard));
           setIsPlacing(true);
-        }, 50);
+        });
       }
     }
   }, [botPlaysWhite, botPlaysBlack, currentBoard, whiteWin]);

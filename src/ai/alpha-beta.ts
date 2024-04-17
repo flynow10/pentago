@@ -1,6 +1,6 @@
 import { Board, didWhiteWin, playMove } from "../game/board";
 import { generateMoves } from "../game/generate-moves";
-import { Move, NullMove, moveEquals } from "../game/move";
+import { Move, NullMove, isNullMove, moveEquals } from "../game/move";
 import PentagoBot from "./bot";
 
 type Transposition = {
@@ -12,6 +12,7 @@ type Transposition = {
 
 export abstract class AlphaBetaBot implements PentagoBot {
   private static readonly MAX_DEPTH = 30;
+  public static DEBUG: boolean = true;
   private bestMove: Move;
   private bestScore: number;
   private startTime: number;
@@ -28,10 +29,10 @@ export abstract class AlphaBetaBot implements PentagoBot {
     this.nodes = 0;
   }
 
-  public getNextMove(board: Board): Move {
+  public async getNextMove(board: Board): Promise<Move> {
     this.bestMove = NullMove();
     this.bestScore = 0;
-    this.startTime = window.performance.now();
+    this.startTime = performance.now();
     this.transpositionNodes = 0;
     this.nodes = 0;
     let chosenMove = NullMove();
@@ -41,23 +42,25 @@ export abstract class AlphaBetaBot implements PentagoBot {
         break;
       }
       chosenMove = this.bestMove;
-      console.log(
-        `${board.whiteToMove ? "white;" : "black;"} depth: ${depth} score: ${
-          this.bestScore
-        } nodes: ${this.nodes} ttNodes: ${this.transpositionNodes} ttSize: ${
-          Object.keys(this.transpositionTable).length
-        } move:`,
-        this.bestMove
-      );
+      if (AlphaBetaBot.DEBUG) {
+        console.log(
+          `${board.whiteToMove ? "white;" : "black;"} depth: ${depth} score: ${
+            this.bestScore
+          } nodes: ${this.nodes} ttNodes: ${this.transpositionNodes} ttSize: ${
+            Object.keys(this.transpositionTable).length
+          } move:`,
+          this.bestMove
+        );
+      }
     }
-    if (chosenMove.square === -1) {
+    if (isNullMove(chosenMove)) {
       throw new Error("No move found in time!");
     }
     return chosenMove;
   }
 
   protected shouldTimeout() {
-    return window.performance.now() - this.startTime > 2000;
+    return performance.now() - this.startTime > 2000;
   }
 
   protected negaMax(
